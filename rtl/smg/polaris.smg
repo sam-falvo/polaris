@@ -2,27 +2,26 @@
  [module PolarisDecoder
   &input [
    [ir "[31:0]"]
-   reset ir_reset pc_reset
-   ft0 ft1 iack_i
-   xt0 xt1 xt2 xt3 dack_i
+   reset ft0 ft1
+   xt0 xt1 xt2 xt3 xt4
+   iack_i dack_i
+   Zflag Cflag NxorVflag
   ]
   &output [
    alua_0 alua_ia alua_imm12i alua_imm12s alua_rf
-   alub_imm12i alub_imm20u alub_rf
-   alufn_and_en alufn_carry_1 alufn_lsh_en alufn_lts_en alufn_ltu_en alufn_invB_1
-   alufn_rsh_en alufn_sum_en alufn_sx32_en alufn_xor_en
+   alub_disp13sb alub_imm12i alub_imm20u alub_rf
    dcyc_1 ddat_rf dptr_alu dsigned [dsize "[1:0]"] dwe_1
    ft0_1 ft1_1
    iadr_pc ia_pc icyc_1
    ir_idat ir_reset ir_tir
-   pc_pc_plus_4 pc_reset
+   pc_alu pc_pc_plus_4 pc_reset
    rfa_ir1 rfa_ir2 rf_alu rfa_rd rfwe
    tir_idat
-   xt0_1 xt1_1 xt2_1 xt3_1
+   xt0_1 xt1_1 xt2_1 xt3_1 xt4_1
   ]
   &wire [
    fn3_eq_0 fn3_eq_1 fn3_eq_2 fn3_eq_3 fn3_eq_4 fn3_eq_5 fn3_eq_6 fn3_eq_7
-   isLoad isLuiAuipc isStore
+   isBranch isJAL isJALR isLoad isLuiAuipc isStore isOp
    prefetch
    useAlu
   ]
@@ -51,11 +50,14 @@
   \\   0   AUIPC
   \\   1   LUI
  [on ["~ir[6]" ["ir[4:0]" 5'b10111]]		isLuiAuipc]
+ [on [["ir[6:0]" 7'b1100011]]			isBranch]
+ [on [["ir[6:0]" 7'b1100111]]			isJALR]
+ [on [["ir[6:0]" 7'b1101111]]			isJAL]
 
 
  \\ Power-on reset logic.
 
- [on [reset]				ir_reset pc_reset xt0_1 ft0_1]
+ [on [reset]				ir_reset pc_reset ft0_1]
 
 
  \\ Instruction fetch logic.  Instructions will (at some point in time) kick
@@ -123,5 +125,50 @@
  [on [~reset xt0 isLuiAuipc "~ir[5]"]	ft0_1 xt1_1	alua_ia]
  [on [~reset xt1 isLuiAuipc]		xt2_1		alub_imm20u]
  [on [~reset xt2 isLuiAuipc]				alufn_sum_en rfa_rd rf_alu rfwe]
+
+ \\ Bcc
+ [on [~reset xt0 isBranch]		xt1_1	rfa_ir1]
+ [on [~reset xt1 isBranch]		xt2_1	rfa_ir2  alua_rf]
+ [on [~reset xt2 isBranch]		xt3_1            alub_rf]
+ [on [~reset xt3 isBranch]			alufn_sum_en alufn_invB_1 alufn_carry_1]
+
+   \\ BEQ
+ [on [~reset xt3 isBranch fn3_eq_0 ~Zflag]		ft0_1]
+ [on [~reset xt3 isBranch fn3_eq_0 Zflag]		xt4_1	alua_ia alub_disp13sb]
+
+   \\ BNE
+ [on [~reset xt3 isBranch fn3_eq_1 ~Zflag]		xt4_1	alua_ia alub_disp13sb]
+ [on [~reset xt3 isBranch fn3_eq_1 Zflag]		ft0_1]
+
+   \\ BLT
+ [on [~reset xt3 isBranch fn3_eq_4 ~NxorVflag]		ft0_1]
+ [on [~reset xt3 isBranch fn3_eq_4 NxorVflag]		xt4_1	alua_ia alub_disp13sb]
+
+   \\ BGE
+ [on [~reset xt3 isBranch fn3_eq_5 ~NxorVflag]		xt4_1	alua_ia alub_disp13sb]
+ [on [~reset xt3 isBranch fn3_eq_5 NxorVflag]		ft0_1]
+
+   \\ BLTU
+ [on [~reset xt3 isBranch fn3_eq_6 Cflag]		ft0_1]
+ [on [~reset xt3 isBranch fn3_eq_6 Zflag]		ft0_1]
+ [on [~reset xt3 isBranch fn3_eq_6 ~Cflag ~ZFlag]	xt4_1	alua_ia alub_disp13sb]
+
+   \\ BGEU
+ [on [~reset xt3 isBranch fn3_eq_7 Cflag]		xt4_1	alua_ia alub_disp13sb]
+ [on [~reset xt3 isBranch fn3_eq_7 Zflag]		xt4_1	alua_ia alub_disp13sb]
+ [on [~reset xt3 isBranch fn3_eq_7 ~Cflag ~ZFlag]	ft0_1]
+
+ [on [~reset xt4 isBranch]		ft0_1	pc_alu alufn_sum_en]
+
+ \\ JALR
+ [on [~reset xt0 isJALR]		xt1_1	rfa_ird rf_pc rfwe]
+ [on [~reset xt1 isJALR]		xt2_1	rfa_ir1]
+ [on [~reset xt2 isJALR]		xt3_1	alua_rf alub_imm12i]
+ [on [~reset xt3 isJALR]			alufn_sum_en pc_alu ft0_1]
+
+ \\ JAL
+ [on [~reset xt0 isJAL]			xt1_1	rfa_ird rf_pc rfwe]
+ [on [~reset xt1 isJAL]			xt2_1	alua_ia alub_disp21]
+ [on [~reset xt2 isJAL]			alufn_sum_en pc_alu ft0_1]
 ]
 

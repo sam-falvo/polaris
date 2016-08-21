@@ -1,0 +1,127 @@
+[
+ [module PolarisDecoder
+  &input [
+   [ir "[31:0]"]
+   reset ir_reset pc_reset
+   ft0 ft1 iack_i
+   xt0 xt1 xt2 xt3 dack_i
+  ]
+  &output [
+   alua_0 alua_ia alua_imm12i alua_imm12s alua_rf
+   alub_imm12i alub_imm20u alub_rf
+   alufn_and_en alufn_carry_1 alufn_lsh_en alufn_lts_en alufn_ltu_en alufn_invB_1
+   alufn_rsh_en alufn_sum_en alufn_sx32_en alufn_xor_en
+   dcyc_1 ddat_rf dptr_alu dsigned [dsize "[1:0]"] dwe_1
+   ft0_1 ft1_1
+   iadr_pc ia_pc icyc_1
+   ir_idat ir_reset ir_tir
+   pc_pc_plus_4 pc_reset
+   rfa_ir1 rfa_ir2 rf_alu rfa_rd rfwe
+   tir_idat
+   xt0_1 xt1_1 xt2_1 xt3_1
+  ]
+  &wire [
+   fn3_eq_0 fn3_eq_1 fn3_eq_2 fn3_eq_3 fn3_eq_4 fn3_eq_5 fn3_eq_6 fn3_eq_7
+   isLoad isLuiAuipc isStore
+   prefetch
+   useAlu
+  ]
+ ]
+
+ [on [["ir[14:12]" 3'b000]]	fn3_eq_0]
+ [on [["ir[14:12]" 3'b001]]	fn3_eq_1]
+ [on [["ir[14:12]" 3'b010]]	fn3_eq_2]
+ [on [["ir[14:12]" 3'b011]]	fn3_eq_3]
+ [on [["ir[14:12]" 3'b100]]	fn3_eq_4]
+ [on [["ir[14:12]" 3'b101]]	fn3_eq_5]
+ [on [["ir[14:12]" 3'b110]]	fn3_eq_6]
+ [on [["ir[14:12]" 3'b111]]	fn3_eq_7]
+
+ [on [["ir[6:0]" 7'b0000011]]			isLoad]
+ [on [["ir[6:0]" 7'b0100011]]			isStore]
+  \\ OP, OP-IMM, OP-32, and OP-IMM-32 are all basically the same.
+  \\ IR[5] IR[3]
+  \\   0     0    OP-IMM
+  \\   0     1    OP-IMM-32
+  \\   1     0    OP
+  \\   1     1    OP-32
+ [on ["~ir[6]" "ir[4:0]" ["ir[2:0]" 3'b011]]	isOp]
+  \\ LUI and AUIPC
+  \\ IR[5]
+  \\   0   AUIPC
+  \\   1   LUI
+ [on ["~ir[6]" ["ir[4:0]" 5'b10111]]		isLuiAuipc]
+
+
+ \\ Power-on reset logic.
+
+ [on [reset]				ir_reset pc_reset xt0_1 ft0_1]
+
+
+ \\ Instruction fetch logic.  Instructions will (at some point in time) kick
+ \\ off instruction fetch by asserting ft0.  The prefetch signal affects
+ \\ whether or not we reload and start new instruction execution right away, or
+ \\ if we wait until the current instruction explicitly decides to let us go.
+
+ [on [~reset ft0 ~iack_i]		iadr_pc icyc_1 ft0_1]
+ [on [~reset ft0 iack_i ~prefetch]	iadr_pc	icyc_1 ir_idat ia_pc pc_pc_plus_4 xt0_1]
+ [on [~reset ft0 iack_i prefetch]	iadr_pc	icyc_1 tir_idat ft1_1]
+ [on [~reset ft1 prefetch]		ft1_1]
+ [on [~reset ft1 ~prefetch]		ir_tir ia_pc pc_pc_plus_4 xt0_1]
+
+
+ \\ LOADs
+
+ [on [~reset xt0 isLoad]		prefetch ft0_1 rfa_ir1 xt1_1]
+ [on [~reset xt1 isLoad]		prefetch alub_rf alua_imm12i xt2_1]
+ [on [~reset xt2 isLoad]		prefetch alufn_sum_en dptr_alu xt3_1]
+
+     \\ Unsigned loads 
+
+ [on [~reset xt3 "~ir[14]" isLoad ~dack_i]
+		prefetch [dsize "ir[13:12]"] dcyc_1 rfa_rd rfwe xt3_1]
+ [on [~reset xt3 "~ir[14]" ["ir[6:0]" 7'b0000011] dack_i]
+ 		[dsize "ir[13:12]"] dcyc_1 rfa_rd rfwe]
+
+    \\ Signed loads
+
+ [on [~reset xt3 "ir[14]" isLoad ~dack_i]
+		prefetch dsigned [dsize "ir[13:12]"] dcyc_1 rfa_rd rfwe xt3_1]
+ [on [~reset xt3 "ir[14]" isLoad dack_i]
+ 		dsigned [dsize "ir[13:12]"] dcyc_1 rfa_rd rfwe]
+
+ \\ STOREs
+
+ [on [~reset xt0 isStore]		prefetch ft0_1 rfa_ir1 xt1_1]
+ [on [~reset xt1 isStore]		prefetch alub_rf alua_imm12s xt2_1]
+ [on [~reset xt2 isStore]		prefetch alufn_sum_en dptr_alu rfa_ir2 xt3_1]
+ [on [~reset xt3 isStore "~ir[14]" ~dack_i]
+		prefetch [dsize "ir[13:12]"] dcyc_1 dwe_1 ddat_rf rfa_ir2 xt3_1]
+ [on [~reset xt3 isStore "~ir[14]" dack_i]
+		[dsize "ir[13:12]"] dcyc_1 dwe_1 ddat_rf]
+
+ \\ OPs (OP, OP-IMM, OP-32, OP-IMM-32)
+ [on [~reset xt0 isOp]			ft0_1 xt1_1	rfa_ir1]
+ [on [~reset xt1 isOp]			xt2_1		rfa_ir2 alua_rf]
+ [on [~reset xt2 isOp "ir[5]"]		xt3_1		alub_rf]
+ [on [~reset xt2 isOp "~ir[5]"]		xt3_1		alub_imm12i]
+ [on [~reset xt3 isOp "~ir[3]"]				rfa_rd rf_alu rfwe useAlu]
+ [on [~reset xt3 isOp "ir[3]"]				rfa_rd rf_alu rfwe useAlu alufn_sx32_en]
+
+ [on [~reset useAlu fn3_eq_0]				sum_en]
+ [on [~reset useAlu fn3_eq_1]				alufn_lsh_en]
+ [on [~reset useAlu fn3_eq_2]				alufn_carry_1 alufn_invB_1 alufn_lts_en]
+ [on [~reset useAlu fn3_eq_3]				alufn_carry_1 alufn_invB_1 alufn_ltu_en]
+ [on [~reset useAlu fn3_eq_4]				alufn_xor_en]
+ [on [~reset useAlu fn3_eq_5 "~ir[30]"]			alufn_rsh_en]
+ [on [~reset useAlu fn3_eq_5 "ir[30]"]			alufn_rsh_en alufn_carry_1]
+ [on [~reset useAlu fn3_eq_6]				alufn_and_en alufn_xor_en]
+ [on [~reset useAlu fn3_eq_7]				alufn_and_en]
+
+ \\ LUI, AUIPC
+ [on [~reset xt0 isLuiAuipc "ir[5]"]	ft0_1 xt1_1	alua_0]
+ [on [~reset xt0 isLuiAuipc "~ir[5]"]	ft0_1 xt1_1	alua_ia]
+ [on [~reset xt1 isLuiAuipc]		xt2_1		alub_imm20u]
+ [on [~reset xt2 isLuiAuipc]				sum_en rfa_rd rf_alu rfwe]
+]
+

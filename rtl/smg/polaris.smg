@@ -108,7 +108,7 @@
  [on [~reset xt3 isOp "~ir[3]"]				rfa_rd rf_alu rfwe useAlu]
  [on [~reset xt3 isOp "ir[3]"]				rfa_rd rf_alu rfwe useAlu alufn_sx32_en]
 
- [on [~reset useAlu fn3_eq_0]				sum_en]
+ [on [~reset useAlu fn3_eq_0]				alufn_sum_en]
  [on [~reset useAlu fn3_eq_1]				alufn_lsh_en]
  [on [~reset useAlu fn3_eq_2]				alufn_carry_1 alufn_invB_1 alufn_lts_en]
  [on [~reset useAlu fn3_eq_3]				alufn_carry_1 alufn_invB_1 alufn_ltu_en]
@@ -122,6 +122,6 @@
  [on [~reset xt0 isLuiAuipc "ir[5]"]	ft0_1 xt1_1	alua_0]
  [on [~reset xt0 isLuiAuipc "~ir[5]"]	ft0_1 xt1_1	alua_ia]
  [on [~reset xt1 isLuiAuipc]		xt2_1		alub_imm20u]
- [on [~reset xt2 isLuiAuipc]				sum_en rfa_rd rf_alu rfwe]
+ [on [~reset xt2 isLuiAuipc]				alufn_sum_en rfa_rd rf_alu rfwe]
 ]
 

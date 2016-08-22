@@ -14,14 +14,17 @@
    ft0_1 ft1_1
    iadr_pc ia_pc icyc_1
    ir_idat ir_reset ir_tir
-   pc_alu pc_pc_plus_4 pc_reset
+   pc_alu pc_pc_plus_4 pc_reset pc_mtvec pc_mepc
    rfa_ir1 rfa_ir2 rf_alu rfa_rd rfwe
    tir_idat
    xt0_1 xt1_1 xt2_1 xt3_1 xt4_1
+   mepc_pc mpie_mie mie_0 mie_mpie mpie_1
+   mcause_3 mcause_11
   ]
   &wire [
    fn3_eq_0 fn3_eq_1 fn3_eq_2 fn3_eq_3 fn3_eq_4 fn3_eq_5 fn3_eq_6 fn3_eq_7
-   isBranch isJAL isJALR isLoad isLuiAuipc isStore isOp
+   isBranch isEBreak isECall isJAL isJALR isLoad isLuiAuipc isMem isStore isOp
+   isMRET isSFENCE_VM isWFI
    prefetch
    useAlu
   ]
@@ -53,7 +56,14 @@
  [on [["ir[6:0]" 7'b1100011]]			isBranch]
  [on [["ir[6:0]" 7'b1100111]]			isJALR]
  [on [["ir[6:0]" 7'b1101111]]			isJAL]
-
+ [on [["ir[31:28]" 4'h0]
+      ["ir[19:0]" 20'h0000F]]			isMem]	\\ FENCE
+ [on [["ir[31:0]" 32'h0000100F]]		isMem]	\\ FENCE.I
+ [on [["ir[31:21]" 11'h000]
+      ["ir[19:0]"  20'h00073]]			isECallBreak]
+ [on [["ir[31:0]" 32'h30200073]]		isMRET]
+ [on [["ir[31:0]" 32'h10500073]]		isWFI]
+ [on [["ir[31:0]" 32'h10400073]]		isSFENCE_VM]
 
  \\ Power-on reset logic.
 
@@ -170,5 +180,22 @@
  [on [~reset xt0 isJAL]			xt1_1	rfa_ird rf_pc rfwe]
  [on [~reset xt1 isJAL]			xt2_1	alua_ia alub_disp21]
  [on [~reset xt2 isJAL]			alufn_sum_en pc_alu ft0_1]
+
+ \\ FENCE and FENCE.I -- these are NOPs for Polaris, since we have no caches and no
+ \\ multi-CPU support.
+ [on [~reset xt0 isMem]			ft0_1]
+
+ \\ ECALL, EBREAK, MRET
+ [on [~reset xt0 isECallBreak]		ft0_1 mepc_pc pc_mtvec mpie_mie mie_0]
+ [on [~reset xt0 isECallBreak "~ir[20]"]  mcause_11]
+ [on [~reset xt0 isECallBreak "ir[20]"]   mcause_3]
+
+ [on [~reset xt0 isMRET]		ft0_1 pc_mepc mie_mpie mpie_1]
+
+ \\ WFI -- NOP for now.
+ [on [~reset xt0 isWFI]			ft0_1]
+
+ \\ SFENCE.VM
+ [on [~reset xt0 isSFENCE_VM]		ft0_1]
 ]
 

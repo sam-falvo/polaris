@@ -15,7 +15,7 @@
    iadr_pc ia_pc icyc_1
    ir_idat ir_reset ir_tir
    pc_alu pc_pc_plus_4 pc_reset pc_mtvec pc_mepc
-   rfa_ir1 rfa_ir2 rf_alu rfa_rd rfwe
+   rfa_ir1 rfa_ir2 rfa_ird rf_alu rfwe
    tir_idat
    xt0_1 xt1_1 xt2_1 xt3_1 xt4_1
    mepc_pc mpie_mie mie_0 mie_mpie mpie_1
@@ -76,11 +76,12 @@
  \\ if we wait until the current instruction explicitly decides to let us go.
 
  [on [~reset ft0 ~iack_i]		iadr_pc icyc_1 ft0_1]
- [on [~reset ft0 iack_i ~prefetch]	iadr_pc	icyc_1 ir_idat ia_pc pc_pc_plus_4 xt0_1]
- [on [~reset ft0 iack_i prefetch]	iadr_pc	icyc_1 tir_idat ft1_1]
+ [on [~reset ft0 iack_i ~prefetch]	iadr_pc	icyc_1       ir_idat ia_pc pc_pc_plus_4 xt0_1]
+ [on [~reset ft0 iack_i prefetch]	iadr_pc	icyc_1       tir_idat ft1_1]
  [on [~reset ft1 prefetch]		ft1_1]
  [on [~reset ft1 ~prefetch]		ir_tir ia_pc pc_pc_plus_4 xt0_1]
-
+ [on [~reset "~{ft0,ft1}" "~{xt0,xt1,xt2,xt3,xt4,xt5}"]
+ 	ft0_1 mepc_pc pc_mtvec mpie_mie mie_0 mcause_2]
 
  \\ LOADs
 
@@ -91,16 +92,16 @@
      \\ Unsigned loads 
 
  [on [~reset xt3 "~ir[14]" isLoad ~dack_i]
-		prefetch [dsize "ir[13:12]"] dcyc_1 rfa_rd rfwe xt3_1]
+		prefetch [dsize "ir[13:12]"] dcyc_1 rfa_ird rfwe xt3_1]
  [on [~reset xt3 "~ir[14]" ["ir[6:0]" 7'b0000011] dack_i]
- 		[dsize "ir[13:12]"] dcyc_1 rfa_rd rfwe]
+ 		[dsize "ir[13:12]"] dcyc_1 rfa_ird rfwe]
 
     \\ Signed loads
 
  [on [~reset xt3 "ir[14]" isLoad ~dack_i]
-		prefetch dsigned [dsize "ir[13:12]"] dcyc_1 rfa_rd rfwe xt3_1]
+		prefetch dsigned [dsize "ir[13:12]"] dcyc_1 rfa_ird rfwe xt3_1]
  [on [~reset xt3 "ir[14]" isLoad dack_i]
- 		dsigned [dsize "ir[13:12]"] dcyc_1 rfa_rd rfwe]
+ 		dsigned [dsize "ir[13:12]"] dcyc_1 rfa_ird rfwe]
 
  \\ STOREs
 
@@ -117,8 +118,8 @@
  [on [~reset xt1 isOp]			xt2_1		rfa_ir2 alua_rf]
  [on [~reset xt2 isOp "ir[5]"]		xt3_1		alub_rf]
  [on [~reset xt2 isOp "~ir[5]"]		xt3_1		alub_imm12i]
- [on [~reset xt3 isOp "~ir[3]"]				rfa_rd rf_alu rfwe useAlu]
- [on [~reset xt3 isOp "ir[3]"]				rfa_rd rf_alu rfwe useAlu alufn_sx32_en]
+ [on [~reset xt3 isOp "~ir[3]"]				rfa_ird rf_alu rfwe useAlu]
+ [on [~reset xt3 isOp "ir[3]"]				rfa_ird rf_alu rfwe useAlu alufn_sx32_en]
 
  [on [~reset useAlu fn3_eq_0]				alufn_sum_en]
  [on [~reset useAlu fn3_eq_1]				alufn_lsh_en]
@@ -134,7 +135,7 @@
  [on [~reset xt0 isLuiAuipc "ir[5]"]	ft0_1 xt1_1	alua_0]
  [on [~reset xt0 isLuiAuipc "~ir[5]"]	ft0_1 xt1_1	alua_ia]
  [on [~reset xt1 isLuiAuipc]		xt2_1		alub_imm20u]
- [on [~reset xt2 isLuiAuipc]				alufn_sum_en rfa_rd rf_alu rfwe]
+ [on [~reset xt2 isLuiAuipc]				alufn_sum_en rfa_ird rf_alu rfwe]
 
  \\ Bcc
  [on [~reset xt0 isBranch]		xt1_1	rfa_ir1]

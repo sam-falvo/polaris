@@ -17,6 +17,7 @@ The following cores exist so far in this repository:
 |KCP53001|arbiter|64-bit Furcula interconnect arbiter.|Not yet (note 1)|
 |KCP53002|wb-bridge|64-bit Wishbone interconnect bridge.|Not yet (note 1)|
 |KCP53003|bottleneck|64-bit to 16-bit Furcula bridge.|Not yet|
+|KCP53004|ramcon|16-bit Micron Cellular RAM controller for the [Digilent Nexys-2](http://store.digilentinc.com/nexys-2-spartan-3e-fpga-trainer-board-retired-see-nexys-4-ddr/).|Not yet|
 
 **Notes**
 

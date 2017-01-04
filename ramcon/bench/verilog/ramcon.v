@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module kcp5300x_tb();
+module test_ramcon();
 	reg [15:0] story;
 	reg clk2x_i, reset_i;
 	wire reset_o;
@@ -22,7 +22,7 @@ module kcp5300x_tb();
 	reg [15:0] ram_dq_o;
 	assign ram_dq_io = (~ram_oe_on) ? ram_dq_o : 16'hzzzz;
 
-	kcp5300x ramcon(
+	ramcon rc(
 		.reset_o(reset_o),
 
 		.ram_ce_on(ram_ce_on),

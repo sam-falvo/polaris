@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module kcp5300x(
+module ramcon(
 	input		reset_i,
 	input		clk2x_i,
 

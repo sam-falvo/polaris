@@ -10,6 +10,7 @@
 	   t3
 	   t4
 	   t5
+	   cfg
           ]
   &output [nt0
            nt1
@@ -25,26 +26,40 @@
            dq_dati
 	   wb_ack_o
            ram_be_valid
+	   cfg_o
+	   ram_cre_o
+	   adr_bcrcfg
           ]
   &wire   [
           ]
  ]
 
- [on [reset_i]					nt0]
- [on [~reset_i ~wb_stb_i]			nt0]
- [on [~reset_i ~wb_cyc_i]			nt0]
+ [on [reset_i]						nt0 cfg_o cpu_reset_o]
+ [on [~reset_i ~wb_stb_i ~cfg]				nt0]
+ [on [~reset_i ~wb_cyc_i ~cfg]				nt0]
 
- [on [~reset_i wb_stb_i wb_cyc_i ~wb_we_i t0]	nt1 ram_ce_o ram_adv_o ram_be_valid]
- [on [~reset_i wb_stb_i wb_cyc_i ~wb_we_i t1]	nt2 ram_ce_o]
- [on [~reset_i wb_stb_i wb_cyc_i ~wb_we_i t2]	nt3 ram_ce_o]
- [on [~reset_i wb_stb_i wb_cyc_i ~wb_we_i t3]	nt4 ram_ce_o]
- [on [~reset_i wb_stb_i wb_cyc_i ~wb_we_i t4]	nt5 ram_ce_o ram_oe_o dato_dq]
- [on [~reset_i wb_stb_i wb_cyc_i ~wb_we_i t5]	nt0 wb_ack_o]
+ \\ This is the only "asynchronous" write operation supported by the state machine.
 
- [on [~reset_i wb_stb_i wb_cyc_i wb_we_i t0]	nt1 ram_ce_o ram_adv_o ram_we_o]
- [on [~reset_i wb_stb_i wb_cyc_i wb_we_i t1]	nt2 ram_ce_o]
- [on [~reset_i wb_stb_i wb_cyc_i wb_we_i t2]	nt3 ram_ce_o]
- [on [~reset_i wb_stb_i wb_cyc_i wb_we_i t3]	nt4 ram_ce_o dq_dati ram_be_valid]
- [on [~reset_i wb_stb_i wb_cyc_i wb_we_i t4]	nt5 ram_ce_o dq_dati ram_be_valid]
- [on [~reset_i wb_stb_i wb_cyc_i wb_we_i t5]	nt0 wb_ack_o]
+ [on [~reset_i cfg t0]					nt1 ram_ce_o ram_cre_o ram_adv_o adr_bcrcfg ram_we_o cfg_o]
+ [on [~reset_i cfg t1]					nt2 ram_ce_o ram_we_o cfg_o]
+ [on [~reset_i cfg t2]					nt3 ram_ce_o ram_we_o cfg_o]
+ [on [~reset_i cfg t3]					nt4 ram_ce_o ram_we_o cfg_o]
+ [on [~reset_i cfg t4]					nt5 ram_ce_o ram_we_o cfg_o]
+ [on [~reset_i cfg t5]					nt0]
+
+ \\ Synchronous reads and writes happen here.
+
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t0]	nt1 ram_ce_o ram_adv_o ram_be_valid]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t1]	nt2 ram_ce_o]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t2]	nt3 ram_ce_o]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t3]	nt4 ram_ce_o]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t4]	nt5 ram_ce_o ram_oe_o dato_dq]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t5]	nt0 wb_ack_o]
+
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t0]	nt1 ram_ce_o ram_adv_o ram_we_o]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t1]	nt2 ram_ce_o]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t2]	nt3 ram_ce_o]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t3]	nt4 ram_ce_o dq_dati ram_be_valid]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t4]	nt5 ram_ce_o dq_dati ram_be_valid]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t5]	nt0 wb_ack_o]
 ]

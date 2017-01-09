@@ -4,7 +4,7 @@ module test_ramcon();
 	reg [15:0] story;
 	reg clk2x_i, reset_i;
 	wire reset_o;
-	wire ram_ce_on;
+	wire ram_ce_on, ram_cre_o;
 	wire ram_lb_on, ram_ub_on;
 	wire ram_oe_on, ram_we_on;
 	wire ram_adv_on;
@@ -25,6 +25,7 @@ module test_ramcon();
 	ramcon rc(
 		.reset_o(reset_o),
 
+		.ram_cre_o(ram_cre_o),
 		.ram_ce_on(ram_ce_on),
 		.ram_lb_on(ram_lb_on),
 		.ram_ub_on(ram_ub_on),

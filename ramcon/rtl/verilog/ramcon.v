@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+`define BCR_ADDR	(23'h085C11)
+
 module ramcon(
 	input		reset_i,
 	input		clk2x_i,
@@ -12,6 +14,7 @@ module ramcon(
 	output		ram_we_on,
 	output		ram_ub_on,
 	output		ram_lb_on,
+	output		ram_cre_o,
 
 	output		wb_ack_o,
 	output	[15:0]	wb_dat_o,
@@ -31,6 +34,8 @@ module ramcon(
 	wire		nt0, nt1, nt2, nt3, nt4, nt5;
 
 	reg		t0, t1, t2, t3, t4, t5;
+	reg		cfg;
+	wire		cfg_o, adr_bcrcfg;
 
 	// PSRAM power-on timing.  Do not let the dogs out until
 	// the PSRAM chip has gone through its boot-up sequence.
@@ -53,12 +58,13 @@ module ramcon(
 			end
 		end
 	end
-	assign reset_o = ~resetCounter[14];
+	wire reset_sans_cfg = ~resetCounter[14];
+	assign reset_o = reset_sans_cfg | cfg;
 
 	// Bus bridge random logic.
 
 	reg [15:0] wb_dat_or;
-	assign ram_adr_o = wb_adr_i;
+	assign ram_adr_o = adr_bcrcfg ? `BCR_ADDR : wb_adr_i;
 
 	assign wb_dat_o = wb_dat_or;
 	always @(posedge clk2x_i) begin
@@ -79,7 +85,7 @@ module ramcon(
 		.t0(t0),
 		.wb_cyc_i(wb_cyc_i),
 		.wb_stb_i(wb_stb_i),
-		.reset_i(reset_o),
+		.reset_i(reset_sans_cfg),
 		.wb_ack_o(wb_ack_o),
 		.dato_dq(dato_dq),
 		.dq_dati(dq_dati),
@@ -93,15 +99,19 @@ module ramcon(
 		.nt3(nt3),
 		.nt2(nt2),
 		.nt1(nt1),
-		.nt0(nt0)
+		.nt0(nt0),
+		.adr_bcrcfg(adr_bcrcfg),
+		.ram_cre_o(ram_cre_o),
+		.cfg_o(cfg_o),
+		.cfg(cfg)
 	);
 
-	assign ram_adv_on = reset_o | ~ram_adv_o;
-	assign ram_ce_on = reset_o | ~ram_ce_o;
-	assign ram_oe_on = reset_o | ~ram_oe_o;
-	assign ram_we_on = reset_o | ~ram_we_o;
-	assign ram_ub_on = reset_o | ~(ram_be_valid & wb_sel_i[1]);
-	assign ram_lb_on = reset_o | ~(ram_be_valid & wb_sel_i[0]);
+	assign ram_adv_on = reset_sans_cfg | ~ram_adv_o;
+	assign ram_ce_on = reset_sans_cfg | ~ram_ce_o;
+	assign ram_oe_on = reset_sans_cfg | ~ram_oe_o;
+	assign ram_we_on = reset_sans_cfg | ~ram_we_o;
+	assign ram_ub_on = reset_sans_cfg | ~(ram_be_valid & wb_sel_i[1]);
+	assign ram_lb_on = reset_sans_cfg | ~(ram_be_valid & wb_sel_i[0]);
 
 	always @(posedge clk2x_i) begin
 		t0 <= nt0;
@@ -110,6 +120,7 @@ module ramcon(
 		t3 <= nt3;
 		t4 <= nt4;
 		t5 <= nt5;
+		cfg <= cfg_o;
 	end
 endmodule
 

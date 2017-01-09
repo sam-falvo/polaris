@@ -15,6 +15,7 @@ module ramcon(
 	output		ram_ub_on,
 	output		ram_lb_on,
 	output		ram_cre_o,
+	output		ram_clk_o,
 
 	output		wb_ack_o,
 	output	[15:0]	wb_dat_o,
@@ -35,7 +36,8 @@ module ramcon(
 
 	reg		t0, t1, t2, t3, t4, t5;
 	reg		cfg;
-	wire		cfg_o, adr_bcrcfg;
+	wire		cfg_o, adr_bcrcfg, clk_en;
+
 
 	// PSRAM power-on timing.  Do not let the dogs out until
 	// the PSRAM chip has gone through its boot-up sequence.
@@ -73,6 +75,8 @@ module ramcon(
 
 	assign ram_dq_io = dq_dati ? wb_dat_i : 16'hzzzz;
 
+	assign ram_clk_o = ~clk2x_i & clk_en;
+
 	// Bus bridge state Machine.
 
 	kseq ks(
@@ -103,7 +107,8 @@ module ramcon(
 		.adr_bcrcfg(adr_bcrcfg),
 		.ram_cre_o(ram_cre_o),
 		.cfg_o(cfg_o),
-		.cfg(cfg)
+		.cfg(cfg),
+		.clk_en(clk_en)
 	);
 
 	assign ram_adv_on = reset_sans_cfg | ~ram_adv_o;

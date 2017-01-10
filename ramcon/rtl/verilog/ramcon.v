@@ -1,6 +1,16 @@
 `timescale 1ns / 1ps
 
-`define BCR_ADDR	(23'h085C11)
+`define BCR_ADDR	(23'b000_10_00_0_0_011_1_0_0_00_01_0_001)
+//				 ||    | | ||| |   |    || | |||
+//                  Address BCR -+'    | | ||| |   |    || | |||
+//                  Synchronous -------' | ||| |   |    || | |||
+//             Variable latency ---------' ||| |   |    || | |||
+//   Latency Counter (4 cycles) -----------''' |   |    || | |||
+//    ram_wait_i is active-high ---------------'   |    || | |||
+// ram_wait_i asserted during delay ---------------'    || | |||
+// Default Drive Strength (1/2) ------------------------'' | |||
+// Burst wraps within burst length ------------------------' |||
+//      Burst length is 4 words -----------------------------'''
 
 module ramcon(
 	input		reset_i,

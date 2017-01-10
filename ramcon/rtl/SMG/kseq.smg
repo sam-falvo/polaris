@@ -11,6 +11,7 @@
 	   t4
 	   t5
 	   cfg
+	   ram_wait_i
           ]
   &output [nt0
            nt1
@@ -50,17 +51,17 @@
 
  \\ Synchronous reads and writes happen here.
 
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t0]	nt1 ram_ce_o ram_adv_o ram_be_valid clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t1]	nt2 ram_ce_o clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t2]	nt3 ram_ce_o clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t3]	nt4 ram_ce_o clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t4]	nt5 ram_ce_o ram_oe_o dato_dq clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t5]	nt0 wb_ack_o clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t0]		nt1 ram_ce_o ram_adv_o ram_be_valid clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t1]		ram_ce_o clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i ram_wait_i t1]	nt1 ram_ce_o clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i ~ram_wait_i t1]	nt2 ram_oe_o dato_dq]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t2]		nt3 ram_oe_o dato_dq ram_ce_o clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg ~wb_we_i t3]		nt0 wb_ack_o clk_en]
 
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t0]	nt1 ram_ce_o ram_adv_o ram_we_o clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t1]	nt2 ram_ce_o clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t2]	nt3 ram_ce_o clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t3]	nt4 ram_ce_o dq_dati ram_be_valid clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t4]	nt5 ram_ce_o dq_dati ram_be_valid clk_en]
- [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t5]	nt0 wb_ack_o clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t0]		nt1 ram_ce_o ram_adv_o ram_we_o clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t1]		ram_ce_o clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i ram_wait_i t1]	nt1]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i ~ram_wait_i t1]	nt2 ram_be_valid dq_dati]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t2]		nt3 ram_be_valid dq_dati ram_ce_o clk_en]
+ [on [~reset_i wb_stb_i wb_cyc_i ~cfg wb_we_i t3]		nt0 wb_ack_o clk_en]
 ]

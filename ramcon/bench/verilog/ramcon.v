@@ -10,6 +10,7 @@ module test_ramcon();
 	wire ram_adv_on;
 	wire [15:0] ram_dq_io;
 	wire [22:0] ram_adr_o;
+	reg ram_wait_i;
 	
 	wire [15:0] wb_dat_o;
 	reg [15:0] wb_dat_i;
@@ -34,6 +35,7 @@ module test_ramcon();
 		.ram_adv_on(ram_adv_on),
 		.ram_dq_io(ram_dq_io),
 		.ram_adr_o(ram_adr_o),
+		.ram_wait_i(ram_wait_i),
 
 		.wb_dat_o(wb_dat_o),
 		.wb_ack_o(wb_ack_o),
@@ -178,6 +180,7 @@ module test_ramcon();
 		reset_i <= 1;
 		wb_cyc_i <= 0;
 		wb_stb_i <= 0;
+		ram_wait_i <= 1'bz;
 
 		#30 reset_i <= 0;
 
@@ -234,7 +237,9 @@ module test_ramcon();
 		assert_ram_ub_on(0);
 		assert_ram_lb_on(0);
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		ram_wait_i <= 1;
+		wait(clk2x_i);
 		scenario(16'h0101);
 
 		assert_wb_ack_o(0);
@@ -246,7 +251,8 @@ module test_ramcon();
 		assert_ram_ub_on(1);
 		assert_ram_lb_on(1);
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		wait(clk2x_i);
 		scenario(16'h0102);
 
 		assert_wb_ack_o(0);
@@ -258,7 +264,8 @@ module test_ramcon();
 		assert_ram_ub_on(1);
 		assert_ram_lb_on(1);
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		wait(clk2x_i);
 		scenario(16'h0103);
 
 		assert_wb_ack_o(0);
@@ -270,7 +277,11 @@ module test_ramcon();
 		assert_ram_ub_on(1);
 		assert_ram_lb_on(1);
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		ram_wait_i <= 0;
+		ram_dq_o <= 16'hD00D;
+		wait(clk2x_i);
+
 		scenario(16'h0104);
 
 		assert_wb_ack_o(0);
@@ -282,9 +293,9 @@ module test_ramcon();
 		assert_ram_ub_on(1);
 		assert_ram_lb_on(1);
 
-		ram_dq_o <= 16'hD00D;
-
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		ram_wait_i <= 1'bz;
+		wait(clk2x_i);
 		scenario(16'h0105);
 
 		assert_wb_ack_o(1);
@@ -307,7 +318,8 @@ module test_ramcon();
 		// 4.  Present data onto DQ inputs.  (80ns elapsed)
 		// 5.  Terminate both WB and PSRAM transactions.
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		wait(clk2x_i);
 		scenario(16'h0200);
 
 		wb_stb_i <= 1'b1;
@@ -329,7 +341,9 @@ module test_ramcon();
 		assert_ram_ub_on(1);
 		assert_ram_lb_on(1);
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		ram_wait_i <= 1;
+		wait(clk2x_i);
 		scenario(16'h0201);
 
 		assert_wb_ack_o(0);
@@ -341,7 +355,8 @@ module test_ramcon();
 		assert_ram_ub_on(1);
 		assert_ram_lb_on(1);
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		wait(clk2x_i);
 		scenario(16'h0202);
 
 		assert_wb_ack_o(0);
@@ -353,7 +368,8 @@ module test_ramcon();
 		assert_ram_ub_on(1);
 		assert_ram_lb_on(1);
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		wait(clk2x_i);
 		scenario(16'h0203);
 
 		assert_wb_ack_o(0);
@@ -362,12 +378,12 @@ module test_ramcon();
 		assert_ram_ce_on(0);
 		assert_ram_oe_on(1);
 		assert_ram_we_on(1);
-		assert_ram_ub_on(0);
-		assert_ram_lb_on(0);
+		assert_ram_ub_on(1);
+		assert_ram_lb_on(1);
 
-		assert_ram_dq_io(16'h0BAD);
-
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		ram_wait_i <= 1'b0;
+		wait(clk2x_i);
 		scenario(16'h0204);
 
 		assert_wb_ack_o(0);
@@ -381,7 +397,9 @@ module test_ramcon();
 
 		assert_ram_dq_io(16'h0BAD);
 
-		wait(~clk2x_i); wait(clk2x_i);
+		wait(~clk2x_i);
+		ram_wait_i <= 1'bz;
+		wait(clk2x_i);
 		scenario(16'h0205);
 
 		assert_wb_ack_o(1);

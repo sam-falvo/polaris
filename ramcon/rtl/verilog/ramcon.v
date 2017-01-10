@@ -16,6 +16,7 @@ module ramcon(
 	output		ram_lb_on,
 	output		ram_cre_o,
 	output		ram_clk_o,
+	input		ram_wait_i,
 
 	output		wb_ack_o,
 	output	[15:0]	wb_dat_o,
@@ -37,7 +38,6 @@ module ramcon(
 	reg		t0, t1, t2, t3, t4, t5;
 	reg		cfg;
 	wire		cfg_o, adr_bcrcfg, clk_en;
-
 
 	// PSRAM power-on timing.  Do not let the dogs out until
 	// the PSRAM chip has gone through its boot-up sequence.
@@ -69,7 +69,7 @@ module ramcon(
 	assign ram_adr_o = adr_bcrcfg ? `BCR_ADDR : wb_adr_i;
 
 	assign wb_dat_o = wb_dat_or;
-	always @(posedge clk2x_i) begin
+	always @(negedge clk2x_i) begin
 		if(dato_dq) wb_dat_or <= ram_dq_io;
 	end
 
@@ -108,7 +108,8 @@ module ramcon(
 		.ram_cre_o(ram_cre_o),
 		.cfg_o(cfg_o),
 		.cfg(cfg),
-		.clk_en(clk_en)
+		.clk_en(clk_en),
+		.ram_wait_i(ram_wait_i)
 	);
 
 	assign ram_adv_on = reset_sans_cfg | ~ram_adv_o;

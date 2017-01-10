@@ -35,14 +35,14 @@
           ]
  ]
 
- [on [reset_i]						nt0 cfg_o cpu_reset_o]
+ [on [reset_i]						nt0 cfg_o]
  [on [~reset_i ~wb_stb_i ~cfg]				nt0]
  [on [~reset_i ~wb_cyc_i ~cfg]				nt0]
 
  \\ This is the only "asynchronous" write operation supported by the state machine.
 
  [on [~reset_i cfg t0]					nt1 ram_ce_o ram_cre_o ram_adv_o adr_bcrcfg ram_we_o cfg_o]
- [on [~reset_i cfg t1]					nt2 ram_ce_o ram_we_o cfg_o]
+ [on [~reset_i cfg t1]					nt2 ram_ce_o adr_bcrcfg ram_we_o cfg_o]
  [on [~reset_i cfg t2]					nt3 ram_ce_o ram_we_o cfg_o]
  [on [~reset_i cfg t3]					nt4 ram_ce_o ram_we_o cfg_o]
  [on [~reset_i cfg t4]					nt5 ram_ce_o ram_we_o cfg_o]

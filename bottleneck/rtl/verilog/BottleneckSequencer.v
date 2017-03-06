@@ -65,100 +65,88 @@ module BottleneckSequencer(
 	reg ack2_o;
 	reg ack1_o;
 
-	reg aligned;
-
 	always @(*) begin
-		SWeO_MWeI <= 0;
-		SStbO_MStbI <= 0;
-		SStbO_1 <= 0;
-		SSizO_MSizI0 <= 0;
-		SSizO_1 <= 0;
-		SSignedO_MSignedI <= 0;
-		SDatO_MDatI63_48 <= 0;
-		SDatO_MDatI47_32 <= 0;
-		SDatO_MDatI31_16 <= 0;
-		SDatO_MDatI <= 0;
-		plus6 <= 0;
-		plus4 <= 0;
-		plus2 <= 0;
-		SAdrO_MAdrI <= 0;
-		MErrAlignO_1 <= 1;
-		MDatO_SDatI <= 0;
-		MAckO_SAckI <= 0;
-		MAckO_1 <= 0;
-		Hold3_SDatI <= 0;
-		Hold2_SDatI <= 0;
-		Hold1_SDatI <= 0;
-		ack3_o <= 0;
-		ack2_o <= 0;
-		ack1_o <= 0;
-		aligned <= 0;
-
-		// Unaligned accesses
-
-//		if (~ResetI && MCycI && MStbI && ~aligned) begin
-//			MErrAlignO_1 <= 1;
-//		end
+		SWeO_MWeI = 0;
+		SStbO_MStbI = 0;
+		SStbO_1 = 0;
+		SSizO_MSizI0 = 0;
+		SSizO_1 = 0;
+		SSignedO_MSignedI = 0;
+		SDatO_MDatI63_48 = 0;
+		SDatO_MDatI47_32 = 0;
+		SDatO_MDatI31_16 = 0;
+		SDatO_MDatI = 0;
+		plus6 = 0;
+		plus4 = 0;
+		plus2 = 0;
+		SAdrO_MAdrI = 0;
+		MErrAlignO_1 = 1;	// Unless told otherwise, assume unaligned accesses.
+		MDatO_SDatI = 0;
+		MAckO_SAckI = 0;
+		MAckO_1 = 0;
+		Hold3_SDatI = 0;
+		Hold2_SDatI = 0;
+		Hold1_SDatI = 0;
+		ack3_o = 0;
+		ack2_o = 0;
+		ack1_o = 0;
 
 		// 8-bit accesses
 
 		if (~ResetI && MCycI && MStbI && ~MSiz1 && ~MSiz0) begin
-			SAdrO_MAdrI <= 1;
-			SDatO_MDatI <= 1;
-			SSignedO_MSignedI <= 1;
-			SSizO_MSizI0 <= 1;
-			SStbO_MStbI <= 1;
-			SWeO_MWeI <= 1;
-			MAckO_SAckI <= 1;
-			MDatO_SDatI <= 1;
-			aligned <= 1;
-			MErrAlignO_1 <= 0;
+			SAdrO_MAdrI = 1;
+			SDatO_MDatI = 1;
+			SSignedO_MSignedI = 1;
+			SSizO_MSizI0 = 1;
+			SStbO_MStbI = 1;
+			SWeO_MWeI = 1;
+			MAckO_SAckI = 1;
+			MDatO_SDatI = 1;
+			MErrAlignO_1 = 0;
 		end
 
 		// 16-bit accesses
 
 		if (~ResetI && MCycI && MStbI && ~MSiz1 && MSiz0 && ~MAdrI0) begin
-			SAdrO_MAdrI <= 1;
-			SDatO_MDatI <= 1;
-			SSignedO_MSignedI <= 1;
-			SSizO_MSizI0 <= 1;
-			SStbO_MStbI <= 1;
-			SWeO_MWeI <= 1;
-			MAckO_SAckI <= 1;
-			MDatO_SDatI <= 1;
-			aligned <= 1;
-			MErrAlignO_1 <= 0;
+			SAdrO_MAdrI = 1;
+			SDatO_MDatI = 1;
+			SSignedO_MSignedI = 1;
+			SSizO_MSizI0 = 1;
+			SStbO_MStbI = 1;
+			SWeO_MWeI = 1;
+			MAckO_SAckI = 1;
+			MDatO_SDatI = 1;
+			MErrAlignO_1 = 0;
 		end
 
 		// 32-bit accesses
 
 		if (~ResetI && MCycI && MStbI && MSiz1 && ~MSiz0 && ~MAdrI1 && ~MAdrI0) begin
-			SAdrO_MAdrI <= 1;
-			SSignedO_MSignedI <= 1;
-			SSizO_1 <= 1;
-			SStbO_1 <= 1;
-			SWeO_MWeI <= 1;
-			aligned <= 1;
-			MErrAlignO_1 <= 0;
+			SAdrO_MAdrI = 1;
+			SSignedO_MSignedI = 1;
+			SSizO_1 = 1;
+			SStbO_1 = 1;
+			SWeO_MWeI = 1;
+			MErrAlignO_1 = 0;
 
 			if (~ack1) begin
-				plus2 <= 1;
-				SDatO_MDatI31_16 <= 1;
-				Hold1_SDatI <= 1;
+				plus2 = 1;
+				SDatO_MDatI31_16 = 1;
+				Hold1_SDatI = 1;
 
 				if (SAckI) begin
-					ack1_o <= 1;
+					ack1_o = 1;
 				end
 			end
 			else begin
-				SDatO_MDatI <= 1;
-				MDatO_SDatI <= 1;
+				SDatO_MDatI = 1;
+				MDatO_SDatI = 1;
 
 				if (SAckI) begin
-					MAckO_1 <= 1;
+					MAckO_1 = 1;
 				end
 				else begin
-					ack1_o <= 1;
+					ack1_o = 1;
 				end
 			end
 		end
@@ -166,77 +154,73 @@ module BottleneckSequencer(
 		// 64-bit accesses
 
 		if (~ResetI && MCycI && MStbI && MSiz1 && MSiz0 && ~MAdrI2 && ~MAdrI1 && ~MAdrI0 && ~ack1 && ~ack2 && ~ack3) begin
-			SAdrO_MAdrI <= 1;
-			plus6 <= 1;
-			SDatO_MDatI63_48 <= 1;
-			SSignedO_MSignedI <= 1;
-			SSizO_1 <= 1;
-			SStbO_1 <= 1;
-			SWeO_MWeI <= 1;
-			Hold3_SDatI <= 1;
-			aligned <= 1;
-			MErrAlignO_1 <= 0;
+			SAdrO_MAdrI = 1;
+			plus6 = 1;
+			SDatO_MDatI63_48 = 1;
+			SSignedO_MSignedI = 1;
+			SSizO_1 = 1;
+			SStbO_1 = 1;
+			SWeO_MWeI = 1;
+			Hold3_SDatI = 1;
+			MErrAlignO_1 = 0;
 
 			if (SAckI) begin
-				ack3_o <= 1;
+				ack3_o = 1;
 			end
 		end
 
 		if (~ResetI && MCycI && MStbI && MSiz1 && MSiz0 && ~MAdrI2 && ~MAdrI1 && ~MAdrI0 && ~ack1 && ~ack2 && ack3) begin
-			SAdrO_MAdrI <= 1;
-			plus4 <= 1;
-			SDatO_MDatI47_32 <= 1;
-			SSignedO_MSignedI <= 1;
-			SSizO_1 <= 1;
-			SStbO_1 <= 1;
-			SWeO_MWeI <= 1;
-			Hold2_SDatI <= 1;
-			aligned <= 1;
-			MErrAlignO_1 <= 0;
-			ack3_o <= 1;
+			SAdrO_MAdrI = 1;
+			plus4 = 1;
+			SDatO_MDatI47_32 = 1;
+			SSignedO_MSignedI = 1;
+			SSizO_1 = 1;
+			SStbO_1 = 1;
+			SWeO_MWeI = 1;
+			Hold2_SDatI = 1;
+			MErrAlignO_1 = 0;
+			ack3_o = 1;
 
 			if (SAckI) begin
-				ack2_o <= 1;
+				ack2_o = 1;
 			end
 		end
 
 		if (~ResetI && MCycI && MStbI && MSiz1 && MSiz0 && ~MAdrI2 && ~MAdrI1 && ~MAdrI0 && ~ack1 && ack2 && ack3) begin
-			SAdrO_MAdrI <= 1;
-			plus2 <= 1;
-			SDatO_MDatI31_16 <= 1;
-			SSignedO_MSignedI <= 1;
-			SSizO_1 <= 1;
-			SStbO_1 <= 1;
-			SWeO_MWeI <= 1;
-			Hold1_SDatI <= 1;
-			aligned <= 1;
-			MErrAlignO_1 <= 0;
-			ack2_o <= 1;
-			ack3_o <= 1;
+			SAdrO_MAdrI = 1;
+			plus2 = 1;
+			SDatO_MDatI31_16 = 1;
+			SSignedO_MSignedI = 1;
+			SSizO_1 = 1;
+			SStbO_1 = 1;
+			SWeO_MWeI = 1;
+			Hold1_SDatI = 1;
+			MErrAlignO_1 = 0;
+			ack2_o = 1;
+			ack3_o = 1;
 
 			if (SAckI) begin
-				ack1_o <= 1;
+				ack1_o = 1;
 			end
 		end
 
 		if (~ResetI && MCycI && MStbI && MSiz1 && MSiz0 && ~MAdrI2 && ~MAdrI1 && ~MAdrI0 && ack1 && ack2 && ack3) begin
-			SAdrO_MAdrI <= 1;
-			SDatO_MDatI <= 1;
-			SSignedO_MSignedI <= 1;
-			SSizO_1 <= 1;
-			SStbO_1 <= 1;
-			SWeO_MWeI <= 1;
-			MDatO_SDatI <= 1;
-			aligned <= 1;
-			MErrAlignO_1 <= 0;
+			SAdrO_MAdrI = 1;
+			SDatO_MDatI = 1;
+			SSignedO_MSignedI = 1;
+			SSizO_1 = 1;
+			SStbO_1 = 1;
+			SWeO_MWeI = 1;
+			MDatO_SDatI = 1;
+			MErrAlignO_1 = 0;
 
 			if (SAckI) begin
-				MAckO_1 <= 1;
+				MAckO_1 = 1;
 			end
 			else begin
-				ack1_o <= 1;
-				ack2_o <= 1;
-				ack3_o <= 1;
+				ack1_o = 1;
+				ack2_o = 1;
+				ack3_o = 1;
 			end
 		end
 	end
